@@ -158,7 +158,7 @@ export function Workspace({ userId, email, onSignOut }: WorkspaceProps) {
   ), [dueTodayOnly, priorityFilter, starredOnly, visibleTasks]);
   const activeNavItems = NAV_ITEMS;
   const displayName = profile?.display_name.trim() || email.split("@")[0] || "there";
-  const firstName = displayName.split(/\s+/)[0];
+  const firstName = displayName.split(/\s+/)[0] || "there";
   const todayLabel = format(new Date(), "EEEE, MMMM d");
 
   const openNewTask = () => { setEditingTask(null); setEditorOpen(true); };
