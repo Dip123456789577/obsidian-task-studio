@@ -430,8 +430,9 @@ function NavButton({ active, collapsed, label, icon, count, onClick }: { active:
 }
 
 function DashboardContent({ tasks, stats, displayName, dateLabel, openNewTask, openTask, setView }: { tasks: Task[]; stats: ReturnType<typeof getTaskStats>; displayName: string; dateLabel: string; openNewTask: () => void; openTask: (task: Task) => void; setView: (view: WorkspaceView) => void }) {
-  const percent = getCompletionPercent(stats);
   const todayTasks = tasks.filter((task) => task.due_at && localDateKey(new Date(task.due_at)) === localDateKey(new Date())).sort((a, b) => String(a.due_at).localeCompare(String(b.due_at)));
+  const todayCompleted = todayTasks.filter((task) => task.completed).length;
+  const percent = getCompletionPercent({ total: todayTasks.length, completed: todayCompleted });
   const recent = tasks.filter((task) => !task.completed).slice(0, 5);
   const upcoming = tasks.filter((task) => !task.completed && task.due_at && new Date(task.due_at).getTime() >= Date.now()).sort((a, b) => String(a.due_at).localeCompare(String(b.due_at))).slice(0, 4);
   const important = tasks.filter((task) => !task.completed && task.starred).slice(0, 4);
@@ -443,9 +444,9 @@ function DashboardContent({ tasks, stats, displayName, dateLabel, openNewTask, o
     </section>
 
     <section className="border border-border bg-card p-5">
-      <div className="flex flex-wrap items-center justify-between gap-4"><div><p className="text-sm font-medium">Daily completion</p><p className="mt-1 text-xs text-muted-foreground">{stats.completed} of {stats.total} tasks completed</p></div><div className="text-2xl font-semibold text-primary">{percent}%</div></div>
+      <div className="flex flex-wrap items-center justify-between gap-4"><div><p className="text-sm font-medium">Daily completion</p><p className="mt-1 text-xs text-muted-foreground">{todayCompleted} of {todayTasks.length} tasks due today completed</p></div><div className="text-2xl font-semibold text-primary">{percent}%</div></div>
       <Progress value={percent} className="mt-4 h-2" />
-      <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground"><span><span className="mr-1.5 inline-block size-2 rounded-full bg-primary" />{stats.pending} pending</span><span><span className="mr-1.5 inline-block size-2 rounded-full bg-success" />{stats.completed} completed</span><span className="text-destructive">{stats.overdue} overdue</span></div>
+      <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground"><span><span className="mr-1.5 inline-block size-2 rounded-full bg-primary" />{todayTasks.length - todayCompleted} remaining today</span><span><span className="mr-1.5 inline-block size-2 rounded-full bg-success" />{todayCompleted} completed today</span><span className="text-destructive">{stats.overdue} overdue overall</span></div>
     </section>
 
     <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
