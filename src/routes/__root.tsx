@@ -15,7 +15,6 @@ import type { User } from "@supabase/supabase-js";
 import { Toaster } from "@/components/ui/sonner";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
 
 type AppUser = { id: string; email: string };
 type AuthContextValue = { user: AppUser | null; loading: boolean };
@@ -48,11 +47,8 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
-  console.error(error);
+  console.error("TASKFORGE application error:", error);
   const router = useRouter();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -90,19 +86,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "TASKFORGE — Personal productivity" },
+      { title: "TASKFORGE — Advanced Productivity & Task Management" },
       {
         name: "description",
-        content: "A focused personal workspace for tasks, priorities, and plans.",
+        content:
+          "A focused Obsidian-inspired personal workspace for tasks, priorities, and productivity planning.",
       },
-      { property: "og:title", content: "TASKFORGE — Personal productivity" },
+      { property: "og:title", content: "TASKFORGE — Advanced Productivity & Task Management" },
       {
         property: "og:description",
-        content: "A focused personal workspace for tasks, priorities, and plans.",
+        content:
+          "A focused Obsidian-inspired personal workspace for tasks, priorities, and productivity planning.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:site", content: "@taskforge" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -115,7 +113,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "alternate icon", href: "/favicon.ico" },
     ],
   }),
   shellComponent: RootShell,

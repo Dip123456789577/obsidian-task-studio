@@ -17,6 +17,7 @@ IMPORTANT: This must be a REAL WORKING WEB APPLICATION, not just a static UI pro
 Create a premium dark interface inspired by the Obsidian desktop application.
 
 ### Color Palette
+
 - Main background: #111111
 - Sidebar background: #151515
 - Card background: #1B1B1B
@@ -32,6 +33,7 @@ Create a premium dark interface inspired by the Obsidian desktop application.
 - Danger: #F87171
 
 ### UI Style
+
 - Modern typography: Inter or Geist.
 - Minimalist and professional layout.
 - Subtle borders and shadows.
@@ -51,6 +53,7 @@ The result should feel like a premium desktop productivity tool.
 Create a professional dashboard with three primary areas:
 
 ### Left Sidebar
+
 Fixed, collapsible navigation containing:
 
 - TASKFORGE logo and brand name.
@@ -69,6 +72,7 @@ Fixed, collapsible navigation containing:
 - Settings.
 
 At the bottom:
+
 - User profile.
 - Account information.
 - Theme settings.
@@ -77,10 +81,13 @@ At the bottom:
 Show active navigation states with a subtle purple highlight.
 
 ### Main Content Area
+
 Display the currently selected workspace and its content.
 
 ### Top Header
+
 Include:
+
 - Dynamic page title.
 - Current date.
 - Global search.
@@ -94,6 +101,7 @@ Include:
 Create a beautiful productivity dashboard.
 
 ### Welcome Section
+
 Display a dynamic greeting:
 "Good afternoon, Alex."
 Subtitle: "Let's make today productive."
@@ -101,7 +109,9 @@ Subtitle: "Let's make today productive."
 Show the current date.
 
 ### Statistics Cards
+
 Create four compact summary cards:
+
 1. Total Tasks.
 2. Completed Tasks.
 3. Pending Tasks.
@@ -110,6 +120,7 @@ Create four compact summary cards:
 All numbers must update dynamically based on actual task data.
 
 ### Productivity Section
+
 - Daily completion progress.
 - Completion percentage.
 - Weekly productivity chart.
@@ -147,6 +158,7 @@ Users must be able to:
 - Add notes to tasks.
 
 ### Task Properties
+
 Each task should support:
 
 - Unique ID.
@@ -167,21 +179,13 @@ Each task should support:
 - Subtasks.
 
 ### Task Creation Interface
+
 Create a premium task creation modal or slide-over panel.
 
 Fields:
+
 - Task title.
 - Description
-
-This project was built with [Lovable](https://lovable.dev).
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/f82348be-5a11-4e94-a929-482c3ab00921).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
