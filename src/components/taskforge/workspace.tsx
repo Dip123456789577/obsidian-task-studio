@@ -313,15 +313,13 @@ export function Workspace({ userId, email, onSignOut }: WorkspaceProps) {
           .eq("id", item.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from("subtasks")
-          .insert({
-            task_id: savedId,
-            user_id: userId,
-            title: item.title,
-            completed: item.completed,
-            sort_order: index,
-          });
+        const { error } = await supabase.from("subtasks").insert({
+          task_id: savedId,
+          user_id: userId,
+          title: item.title,
+          completed: item.completed,
+          sort_order: index,
+        });
         if (error) throw error;
       }
     }
