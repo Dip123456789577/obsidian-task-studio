@@ -1,0 +1,18 @@
+{
+  "source": "uploaded Stitch design archives (code-archive)",
+  "capabilities": [
+    { "capability": "application code", "source": "design HTML only; no runnable application or package manifest", "outcome": "rebuild as TASKFORGE in the current project", "status": "in_progress", "next_action": "complete core workspace and screens" },
+    { "capability": "database schema", "source": "no schema files found", "outcome": "create new Lovable Cloud schema for profiles, tasks, and subtasks", "status": "in_progress", "next_action": "apply schema and verify app reads/writes" },
+    { "capability": "application records", "source": "no task exports or records found", "outcome": "not applicable; the uploads are design references, not a prior data store", "status": "not_applicable", "next_action": null },
+    { "capability": "authentication identities", "source": "no auth configuration or users found", "outcome": "create new account sign-in for TASKFORGE", "status": "in_progress", "next_action": "verify a real account flow when available" },
+    { "capability": "authorization", "source": "no authorization rules found", "outcome": "owner-only task and profile access through database row policies", "status": "in_progress", "next_action": "verify owner isolation" },
+    { "capability": "uploaded file bytes", "source": "screenshots and design HTML", "outcome": "use as references only; no app media required", "status": "not_applicable", "next_action": null },
+    { "capability": "external providers", "source": "none detected", "outcome": "none to preserve", "status": "not_applicable", "next_action": null },
+    { "capability": "public endpoints", "source": "none detected", "outcome": "none to preserve", "status": "not_applicable", "next_action": null },
+    { "capability": "callbacks and webhooks", "source": "none detected", "outcome": "none to preserve", "status": "not_applicable", "next_action": null },
+    { "capability": "schedules", "source": "none detected", "outcome": "none to preserve", "status": "not_applicable", "next_action": null },
+    { "capability": "secrets", "source": "none detected", "outcome": "none required for the new app", "status": "not_applicable", "next_action": null },
+    { "capability": "cutover", "source": "design-only source; no published app", "outcome": "no cutover needed", "status": "not_applicable", "next_action": null },
+    { "capability": "verification", "source": "new TASKFORGE app", "outcome": "verify build, interaction, and persistence paths", "status": "pending", "next_action": "exercise representative task create/read/update/delete flows" }
+  ]
+}
