@@ -9,9 +9,21 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { User } from "@supabase/supabase-js";
+import { Toaster } from "@/components/ui/sonner";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+
+type AppUser = { id: string; email: string };
+type AuthContextValue = { user: AppUser | null; loading: boolean };
+const AuthContext = createContext<AuthContextValue>({ user: null, loading: true });
+
+export function useTaskforgeAuth() {
+  return useContext(AuthContext);
+}
 
 function NotFoundComponent() {
   return (
@@ -78,16 +90,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "TASKFORGE — Personal productivity" },
+      {
+        name: "description",
+        content: "A focused personal workspace for tasks, priorities, and plans.",
+      },
+      { property: "og:title", content: "TASKFORGE — Personal productivity" },
+      {
+        property: "og:description",
+        content: "A focused personal workspace for tasks, priorities, and plans.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
+      },
       {
         rel: "stylesheet",
         href: appCss,
@@ -117,11 +140,44 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+  const [auth, setAuth] = useState<AuthContextValue>({ user: null, loading: true });
+
+  useEffect(() => {
+    let active = true;
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      setAuth({
+        user: session?.user ? { id: session.user.id, email: session.user.email ?? "" } : null,
+        loading: false,
+      });
+      router.invalidate();
+      if (event !== "SIGNED_OUT") void queryClient.invalidateQueries();
+    });
+
+    void supabase.auth.getUser().then(({ data, error }) => {
+      if (!active) return;
+      setAuth({
+        user: !error && data.user ? { id: data.user.id, email: data.user.email ?? "" } : null,
+        loading: false,
+      });
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, [queryClient, router]);
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <AuthContext.Provider value={auth}>
+        <Toaster />
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+      </AuthContext.Provider>
     </QueryClientProvider>
   );
 }
