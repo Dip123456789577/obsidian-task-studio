@@ -68,6 +68,8 @@ export function Workspace({ userId, email, onSignOut }: WorkspaceProps) {
   const [query, setQuery] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "kanban" | "calendar">("list");
   const [priorityFilter, setPriorityFilter] = useState("all");
+  const [starredOnly, setStarredOnly] = useState(false);
+  const [dueTodayOnly, setDueTodayOnly] = useState(false);
   const [focusOnly, setFocusOnly] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -149,7 +151,11 @@ export function Workspace({ userId, email, onSignOut }: WorkspaceProps) {
   const liveTasks = useMemo(() => tasks.filter((task) => !task.deleted_at), [tasks]);
   const stats = useMemo(() => getTaskStats(tasks), [tasks]);
   const visibleTasks = useMemo(() => getVisibleTasks(tasks, { view, query, focusOnly }), [tasks, view, query, focusOnly]);
-  const filteredTasks = useMemo(() => priorityFilter === "all" ? visibleTasks : visibleTasks.filter((task) => task.priority === priorityFilter), [priorityFilter, visibleTasks]);
+  const filteredTasks = useMemo(() => visibleTasks.filter((task) =>
+    (priorityFilter === "all" || task.priority === priorityFilter) &&
+    (!starredOnly || task.starred) &&
+    (!dueTodayOnly || Boolean(task.due_at && localDateKey(new Date(task.due_at)) === localDateKey(new Date()))),
+  ), [dueTodayOnly, priorityFilter, starredOnly, visibleTasks]);
   const activeNavItems = NAV_ITEMS;
   const displayName = profile?.display_name.trim() || email.split("@")[0] || "there";
   const firstName = displayName.split(/\s+/)[0];
@@ -371,6 +377,10 @@ export function Workspace({ userId, email, onSignOut }: WorkspaceProps) {
                 query={query}
                 priorityFilter={priorityFilter}
                 setPriorityFilter={setPriorityFilter}
+                starredOnly={starredOnly}
+                setStarredOnly={setStarredOnly}
+                dueTodayOnly={dueTodayOnly}
+                setDueTodayOnly={setDueTodayOnly}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
                 openNewTask={openNewTask}
