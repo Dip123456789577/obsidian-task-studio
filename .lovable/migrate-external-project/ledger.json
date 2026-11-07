@@ -5,15 +5,15 @@
       "capability": "application code",
       "source": "design HTML only; no runnable application or package manifest",
       "outcome": "rebuild as TASKFORGE in the current project",
-      "status": "in_progress",
-      "next_action": "complete core workspace and screens"
+      "status": "complete",
+      "next_action": null
     },
     {
       "capability": "database schema",
       "source": "no schema files found",
       "outcome": "create new Lovable Cloud schema for profiles, tasks, and subtasks",
-      "status": "in_progress",
-      "next_action": "apply schema and verify app reads/writes"
+      "status": "complete",
+      "next_action": null
     },
     {
       "capability": "application records",
@@ -27,14 +27,14 @@
       "source": "no auth configuration or users found",
       "outcome": "create new account sign-in for TASKFORGE",
       "status": "in_progress",
-      "next_action": "verify a real account flow when available"
+      "next_action": "verify sign-in and task persistence after a user account is created"
     },
     {
       "capability": "authorization",
       "source": "no authorization rules found",
       "outcome": "owner-only task and profile access through database row policies",
       "status": "in_progress",
-      "next_action": "verify owner isolation"
+      "next_action": "verify owner isolation after a user account is created"
     },
     {
       "capability": "uploaded file bytes",
@@ -88,9 +88,9 @@
     {
       "capability": "verification",
       "source": "new TASKFORGE app",
-      "outcome": "verify build, interaction, and persistence paths",
+      "outcome": "Build and public interaction checks pass; authenticated persistence and ownership checks await a signed-in account",
       "status": "pending",
-      "next_action": "exercise representative task create/read/update/delete flows"
+      "next_action": "Create or sign in to an account, then exercise task create/read/update/delete and ownership isolation"
     }
   ]
 }
