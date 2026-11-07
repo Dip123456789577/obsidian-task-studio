@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getCompletionPercent, getTaskStats, getVisibleTasks, type Task } from "@/lib/taskforge-logic";
+import { getCompletionPercent, getTaskStats, getVisibleTasks, nextRecurringDue, type Task } from "@/lib/taskforge-logic";
 
 function task(overrides: Partial<Task> = {}): Task {
   return {
@@ -52,5 +52,11 @@ describe("TASKFORGE task rules", () => {
   it("calculates completion percentage from the actual task count", () => {
     expect(getCompletionPercent({ total: 8, completed: 5 })).toBe(63);
     expect(getCompletionPercent({ total: 0, completed: 0 })).toBe(0);
+  });
+
+  it("moves a recurring task forward by its interval and clamps short months", () => {
+    expect(nextRecurringDue("2026-11-07T08:00:00.000Z", "daily")).toBe("2026-11-08T08:00:00.000Z");
+    expect(nextRecurringDue("2026-11-07T08:00:00.000Z", "weekly")).toBe("2026-11-14T08:00:00.000Z");
+    expect(nextRecurringDue("2026-01-31T08:00:00.000Z", "monthly")).toBe("2026-02-28T08:00:00.000Z");
   });
 });

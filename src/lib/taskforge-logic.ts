@@ -94,6 +94,13 @@ export function nextRecurringDue(dueAt: string | null, recurrence: string | null
   const next = new Date(dueAt);
   if (recurrence === "daily") next.setDate(next.getDate() + 1);
   if (recurrence === "weekly") next.setDate(next.getDate() + 7);
-  if (recurrence === "monthly") next.setMonth(next.getMonth() + 1);
+  if (recurrence === "monthly") {
+    const targetMonth = next.getMonth() + 1;
+    const dayOfMonth = next.getDate();
+    next.setDate(1);
+    next.setMonth(targetMonth);
+    const lastDayOfMonth = new Date(next.getFullYear(), next.getMonth() + 1, 0).getDate();
+    next.setDate(Math.min(dayOfMonth, lastDayOfMonth));
+  }
   return next.toISOString();
 }
