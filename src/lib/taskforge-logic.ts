@@ -32,7 +32,8 @@ export function getTaskStats(tasks: TaskRecord[], now = new Date()) {
   const live = tasks.filter((task) => !task.deleted_at);
   const completed = live.filter((task) => task.completed).length;
   const overdue = live.filter(
-    (task) => !task.completed && task.due_at !== null && new Date(task.due_at).getTime() < now.getTime(),
+    (task) =>
+      !task.completed && task.due_at !== null && new Date(task.due_at).getTime() < now.getTime(),
   ).length;
 
   return {
@@ -40,7 +41,9 @@ export function getTaskStats(tasks: TaskRecord[], now = new Date()) {
     completed,
     pending: live.length - completed,
     overdue,
-    today: live.filter((task) => task.due_at !== null && localDateKey(new Date(task.due_at)) === localDateKey(now)),
+    today: live.filter(
+      (task) => task.due_at !== null && localDateKey(new Date(task.due_at)) === localDateKey(now),
+    ),
   };
 }
 
@@ -57,18 +60,46 @@ export function getVisibleTasks(
       if (view === "trash") return task.deleted_at !== null;
       if (task.deleted_at !== null) return false;
       if (view === "completed" && !task.completed) return false;
-      if (view !== "completed" && task.completed && !["dashboard", "tasks", "inbox", "calendar", "analytics", "projects", "categories", "tags"].includes(view)) return false;
+      if (
+        view !== "completed" &&
+        task.completed &&
+        ![
+          "dashboard",
+          "tasks",
+          "inbox",
+          "calendar",
+          "analytics",
+          "projects",
+          "categories",
+          "tags",
+        ].includes(view)
+      )
+        return false;
       if (view === "important" && !task.starred) return false;
-      if (view === "today" && (!task.due_at || localDateKey(new Date(task.due_at)) !== today)) return false;
-      if (view === "upcoming" && (!task.due_at || new Date(task.due_at).getTime() < now.getTime())) return false;
-      if (focusOnly && (task.completed || (task.priority !== "urgent" && task.priority !== "high" && !task.starred))) return false;
+      if (view === "today" && (!task.due_at || localDateKey(new Date(task.due_at)) !== today))
+        return false;
+      if (view === "upcoming" && (!task.due_at || new Date(task.due_at).getTime() < now.getTime()))
+        return false;
+      if (
+        focusOnly &&
+        (task.completed ||
+          (task.priority !== "urgent" && task.priority !== "high" && !task.starred))
+      )
+        return false;
 
       if (view === "projects" && !task.project) return false;
       if (view === "categories" && !task.category) return false;
       if (view === "tags" && task.tags.length === 0) return false;
 
       if (normalizedQuery) {
-        const searchable = [task.title, task.description, task.notes, task.project, task.category, ...task.tags]
+        const searchable = [
+          task.title,
+          task.description,
+          task.notes,
+          task.project,
+          task.category,
+          ...task.tags,
+        ]
           .filter(Boolean)
           .join(" ")
           .toLocaleLowerCase();
@@ -78,10 +109,15 @@ export function getVisibleTasks(
       return true;
     })
     .sort((a, b) => {
-      if (view === "trash") return new Date(b.deleted_at ?? 0).getTime() - new Date(a.deleted_at ?? 0).getTime();
+      if (view === "trash")
+        return new Date(b.deleted_at ?? 0).getTime() - new Date(a.deleted_at ?? 0).getTime();
       const dueA = a.due_at ? new Date(a.due_at).getTime() : Number.MAX_SAFE_INTEGER;
       const dueB = b.due_at ? new Date(b.due_at).getTime() : Number.MAX_SAFE_INTEGER;
-      return Number(b.starred) - Number(a.starred) || dueA - dueB || b.created_at.localeCompare(a.created_at);
+      return (
+        Number(b.starred) - Number(a.starred) ||
+        dueA - dueB ||
+        b.created_at.localeCompare(a.created_at)
+      );
     });
 }
 

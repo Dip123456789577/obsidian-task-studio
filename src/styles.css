@@ -151,14 +151,28 @@
     font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
   }
 
-  button, input, select, textarea { font: inherit; }
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
 }
 
 @utility hide-scrollbar {
   scrollbar-width: none;
-  &::-webkit-scrollbar { display: none; }
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

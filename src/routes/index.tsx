@@ -11,9 +11,15 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "TASKFORGE — Personal productivity" },
-      { name: "description", content: "A focused personal workspace for tasks, priorities, and plans." },
+      {
+        name: "description",
+        content: "A focused personal workspace for tasks, priorities, and plans.",
+      },
       { property: "og:title", content: "TASKFORGE — Personal productivity" },
-      { property: "og:description", content: "A focused personal workspace for tasks, priorities, and plans." },
+      {
+        property: "og:description",
+        content: "A focused personal workspace for tasks, priorities, and plans.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -35,7 +41,13 @@ function IndexPage() {
   };
 
   if (loading || signingOut) {
-    return <main className="grid min-h-screen place-items-center bg-background"><div className="flex items-center gap-3 text-sm text-muted-foreground"><LoaderCircle className="size-4 animate-spin text-primary" /> Opening TASKFORGE…</div></main>;
+    return (
+      <main className="grid min-h-screen place-items-center bg-background">
+        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+          <LoaderCircle className="size-4 animate-spin text-primary" /> Opening TASKFORGE…
+        </div>
+      </main>
+    );
   }
 
   if (!user) return <AuthScreen onAuthenticated={() => undefined} />;

@@ -91,9 +91,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "TASKFORGE — Personal productivity" },
-      { name: "description", content: "A focused personal workspace for tasks, priorities, and plans." },
+      {
+        name: "description",
+        content: "A focused personal workspace for tasks, priorities, and plans.",
+      },
       { property: "og:title", content: "TASKFORGE — Personal productivity" },
-      { property: "og:description", content: "A focused personal workspace for tasks, priorities, and plans." },
+      {
+        property: "og:description",
+        content: "A focused personal workspace for tasks, priorities, and plans.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
@@ -101,7 +107,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
+      },
       {
         rel: "stylesheet",
         href: appCss,
@@ -136,16 +145,24 @@ function RootComponent() {
 
   useEffect(() => {
     let active = true;
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
-      setAuth({ user: session?.user ? { id: session.user.id, email: session.user.email ?? "" } : null, loading: false });
+      setAuth({
+        user: session?.user ? { id: session.user.id, email: session.user.email ?? "" } : null,
+        loading: false,
+      });
       router.invalidate();
       if (event !== "SIGNED_OUT") void queryClient.invalidateQueries();
     });
 
     void supabase.auth.getUser().then(({ data, error }) => {
       if (!active) return;
-      setAuth({ user: !error && data.user ? { id: data.user.id, email: data.user.email ?? "" } : null, loading: false });
+      setAuth({
+        user: !error && data.user ? { id: data.user.id, email: data.user.email ?? "" } : null,
+        loading: false,
+      });
     });
 
     return () => {
