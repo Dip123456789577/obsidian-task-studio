@@ -17,7 +17,7 @@ import { Toaster } from "@/components/ui/sonner";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
-type AppUser = Pick<User, "id" | "email">;
+type AppUser = { id: string; email: string };
 type AuthContextValue = { user: AppUser | null; loading: boolean };
 const AuthContext = createContext<AuthContextValue>({ user: null, loading: true });
 
