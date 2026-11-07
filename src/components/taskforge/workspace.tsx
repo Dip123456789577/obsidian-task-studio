@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { TaskEditor, type DraftTask } from "@/components/taskforge/task-editor";
@@ -16,8 +16,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { toast } from "sonner";
 import { addDays, endOfMonth, format, isSameDay, startOfMonth } from "date-fns";
 import {
-  Activity, Archive, ArrowDown, ArrowUp, Bell, CalendarDays, Check, CheckCheck, ChevronLeft, ChevronRight,
-  CircleHelp, ClipboardList, Clock3, Command, FolderKanban, Inbox, LayoutDashboard, ListTodo, LogOut,
+  Activity, Archive, ArrowUp, Bell, CalendarDays, Check, CheckCheck, ChevronLeft, ChevronRight,
+  ClipboardList, Clock3, Command, FolderKanban, Inbox, LayoutDashboard, ListTodo, LogOut,
   Menu, MoreHorizontal, Plus, Search, Settings2, ShieldCheck, Star, Tags, Trash2, TrendingUp, X,
 } from "lucide-react";
 
@@ -384,6 +384,9 @@ export function Workspace({ userId, email, onSignOut }: WorkspaceProps) {
                 onMove={moveTask}
                 draggingTask={draggingTask}
                 setDraggingTask={setDraggingTask}
+                month={month}
+                setMonth={setMonth}
+                refresh={refresh}
               />}
             </>}
           </div>
@@ -410,7 +413,7 @@ export function Workspace({ userId, email, onSignOut }: WorkspaceProps) {
   );
 }
 
-function NavButton({ active, collapsed, label, icon, count, onClick }: { active: boolean; collapsed: boolean; label: string; icon: React.ReactNode; count?: number | null; onClick: () => void }) {
+function NavButton({ active, collapsed, label, icon, count, onClick }: { active: boolean; collapsed: boolean; label: string; icon: ReactNode; count?: number | null; onClick: () => void }) {
   return <Button variant="ghost" className={`h-9 w-full justify-start gap-3 px-2.5 text-sm ${active ? "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary" : "text-muted-foreground"}`} aria-current={active ? "page" : undefined} title={collapsed ? label : undefined} onClick={onClick}>
     {icon}{!collapsed && <><span className="flex-1 truncate text-left">{label}</span>{count !== null && count !== undefined && count > 0 && <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">{count}</span>}</>}
   </Button>;
@@ -474,6 +477,7 @@ function TaskListContent(props: {
   onComplete: (task: Task) => void; onStar: (task: Task) => void; onDelete: (task: Task) => void; onRestore: (task: Task) => void;
   onPermanentDelete: (task: Task) => void; onDuplicate: (task: Task) => void; onMove: (task: Task, status: string) => void;
   draggingTask: string | null; setDraggingTask: (id: string | null) => void;
+  month: Date; setMonth: (date: Date) => void; refresh: () => Promise<void>;
 }) {
   const { view, tasks, allTasks } = props;
   const [selected, setSelected] = useState<string[]>([]);
@@ -485,7 +489,7 @@ function TaskListContent(props: {
     if (!selected.length) return;
     const { error } = await supabase.from("tasks").update({ completed: true, completed_at: new Date().toISOString(), status: "done" }).in("id", selected);
     if (error) toast.error("Selected tasks could not be completed");
-    else { toast.success(`${selected.length} tasks completed`); setSelected([]); window.location.reload(); }
+    else { toast.success(`${selected.length} tasks completed`); setSelected([]); await props.refresh(); }
   };
 
   const rows = (items: Task[]) => items.map((task) => <TaskRow key={task.id} task={task} onComplete={props.onComplete} onStar={props.onStar} onEdit={props.openTask} onDelete={props.onDelete} onRestore={props.onRestore} onPermanentDelete={props.onPermanentDelete} onDuplicate={props.onDuplicate} />);
@@ -508,11 +512,14 @@ function TaskListContent(props: {
     </section>
 
     <div className="flex flex-wrap items-center gap-2">
-      {[{ label: "All tasks", count: allTasks.filter((task) => !task.completed).length, active: true }, { label: "High priority", count: priorityCount, active: false }, { label: "Starred", count: allTasks.filter((task) => task.starred && !task.completed).length, active: false }, { label: "Due today", count: allTasks.filter((task) => task.due_at && localDateKey(new Date(task.due_at)) === localDateKey(new Date())).length, active: false }].map((item) => <span key={item.label} className={`border px-2 py-1 text-[11px] ${item.active ? "border-primary/30 bg-primary/10 text-primary" : "border-border text-muted-foreground"}`}>{item.label} <span className="ml-1 font-mono">{item.count}</span></span>)}
+      <Button variant={props.priorityFilter === "all" ? "secondary" : "outline"} size="sm" className="h-7 text-[11px]" onClick={() => props.setPriorityFilter("all")}>All tasks <span className="ml-1 font-mono">{allTasks.filter((task) => !task.completed).length}</span></Button>
+      <Button variant={props.priorityFilter === "high" ? "secondary" : "outline"} size="sm" className="h-7 text-[11px]" onClick={() => props.setPriorityFilter(props.priorityFilter === "high" ? "all" : "high")}>High priority <span className="ml-1 font-mono">{priorityCount}</span></Button>
+      <Button variant={props.priorityFilter === "urgent" ? "secondary" : "outline"} size="sm" className="h-7 text-[11px]" onClick={() => props.setPriorityFilter(props.priorityFilter === "urgent" ? "all" : "urgent")}>Urgent <span className="ml-1 font-mono">{allTasks.filter((task) => task.priority === "urgent" && !task.completed).length}</span></Button>
+      <Button variant="outline" size="sm" className="h-7 text-[11px]" onClick={() => props.setPriorityFilter("all")}>Starred <span className="ml-1 font-mono">{allTasks.filter((task) => task.starred && !task.completed).length}</span></Button>
       {selected.length > 0 && <><span className="ml-auto text-xs text-muted-foreground">{selected.length} selected</span><Button size="sm" variant="outline" className="h-7" onClick={() => void bulkComplete()}><Check className="size-3.5" /> Complete selected</Button><Button size="icon" variant="ghost" className="size-7" aria-label="Clear selection" onClick={() => setSelected([])}><X className="size-4" /></Button></>}
     </div>
 
-    {props.viewMode === "kanban" && view === "tasks" ? <KanbanView tasks={tasks.filter((task) => !task.completed)} openTask={props.openTask} onMove={props.onMove} openNewTask={props.openNewTask} draggingTask={props.draggingTask} setDraggingTask={props.setDraggingTask} /> : props.viewMode === "calendar" ? <CalendarContent tasks={tasks} month={startOfMonth(new Date())} setMonth={() => {}} openTask={props.openTask} openNewTask={props.openNewTask} /> : tasks.length === 0 ? <EmptyState title={view === "trash" ? "Trash is empty" : view === "completed" ? "No completed tasks yet" : "Nothing here yet"} description={view === "trash" ? "Deleted tasks will appear here so you can restore them." : "Create a task to start building your list."} icon={view === "trash" ? <Trash2 className="size-5" /> : <ListTodo className="size-5" />} action={view !== "trash" && <Button size="sm" onClick={props.openNewTask}><Plus className="size-4" /> Create task</Button>} /> : grouped && view !== "trash" ? <div className="space-y-4">{["urgent", "high", "medium", "low"].map((priority) => { const group = tasks.filter((task) => task.priority === priority); if (!group.length) return null; return <section key={priority} className="border border-border bg-card"><div className="flex items-center justify-between border-b border-border px-4 py-3"><div className="flex items-center gap-2"><PriorityMark priority={priority} /><h2 className="text-xs font-medium capitalize">{priority} priority</h2><Badge variant="secondary" className="px-1.5 py-0 text-[10px]">{group.length}</Badge></div><Button variant="ghost" size="icon" className="size-7" aria-label={`Select all ${priority} tasks`} onClick={() => setSelected((current) => [...new Set([...current, ...group.map((task) => task.id)])])}><Checkbox checked={group.every((task) => selected.includes(task.id))} aria-label={`Select ${priority} tasks`} /></Button></div><div>{group.map((task) => <div key={task.id} className="flex items-center"><Checkbox className="ml-4" checked={selected.includes(task.id)} onCheckedChange={() => toggleSelected(task.id)} aria-label={`Select ${task.title}`} /> <div className="min-w-0 flex-1">{rows([task])}</div></div>)}</div></section>; })}</div> : <section className="border border-border bg-card">{view === "trash" && <div className="border-b border-border px-4 py-3 text-xs text-muted-foreground">Items in Trash can be restored or permanently deleted.</div>}{rows(tasks)}</section>}
+    {props.viewMode === "kanban" && view === "tasks" ? <KanbanView tasks={tasks.filter((task) => !task.completed)} openTask={props.openTask} onMove={props.onMove} openNewTask={props.openNewTask} draggingTask={props.draggingTask} setDraggingTask={props.setDraggingTask} /> : props.viewMode === "calendar" ? <CalendarContent tasks={tasks} month={props.month} setMonth={props.setMonth} openTask={props.openTask} openNewTask={props.openNewTask} /> : tasks.length === 0 ? <EmptyState title={view === "trash" ? "Trash is empty" : view === "completed" ? "No completed tasks yet" : "Nothing here yet"} description={view === "trash" ? "Deleted tasks will appear here so you can restore them." : "Create a task to start building your list."} icon={view === "trash" ? <Trash2 className="size-5" /> : <ListTodo className="size-5" />} action={view !== "trash" && <Button size="sm" onClick={props.openNewTask}><Plus className="size-4" /> Create task</Button>} /> : grouped && view !== "trash" ? <div className="space-y-4">{["urgent", "high", "medium", "low"].map((priority) => { const group = tasks.filter((task) => task.priority === priority); if (!group.length) return null; return <section key={priority} className="border border-border bg-card"><div className="flex items-center justify-between border-b border-border px-4 py-3"><div className="flex items-center gap-2"><PriorityMark priority={priority} /><h2 className="text-xs font-medium capitalize">{priority} priority</h2><Badge variant="secondary" className="px-1.5 py-0 text-[10px]">{group.length}</Badge></div><Button variant="ghost" size="icon" className="size-7" aria-label={`Select all ${priority} tasks`} onClick={() => setSelected((current) => [...new Set([...current, ...group.map((task) => task.id)])])}><Checkbox checked={group.every((task) => selected.includes(task.id))} aria-label={`Select ${priority} tasks`} /></Button></div><div>{group.map((task) => <div key={task.id} className="flex items-center"><Checkbox className="ml-4" checked={selected.includes(task.id)} onCheckedChange={() => toggleSelected(task.id)} aria-label={`Select ${task.title}`} /> <div className="min-w-0 flex-1">{rows([task])}</div></div>)}</div></section>; })}</div> : <section className="border border-border bg-card">{view === "trash" && <div className="border-b border-border px-4 py-3 text-xs text-muted-foreground">Items in Trash can be restored or permanently deleted.</div>}{rows(tasks)}</section>}
   </div>;
 }
 
@@ -551,7 +558,7 @@ function AnalyticsContent({ tasks }: { tasks: Task[] }) {
   </div>;
 }
 
-function SettingsContent({ email, profileName, setProfileName, profile, saving, onSave, onSignOut }: { email: string; profileName: string; setProfileName: (name: string) => void; profile: Profile | null; saving: boolean; onSave: (event: React.FormEvent<HTMLFormElement>) => void; onSignOut: () => void }) {
+function SettingsContent({ email, profileName, setProfileName, profile, saving, onSave, onSignOut }: { email: string; profileName: string; setProfileName: (name: string) => void; profile: Profile | null; saving: boolean; onSave: (event: FormEvent<HTMLFormElement>) => void; onSignOut: () => void }) {
   return <div className="mx-auto max-w-2xl space-y-5"><section><p className="font-mono text-[10px] uppercase text-primary">Your workspace</p><h1 className="mt-1 text-xl font-semibold">Settings</h1><p className="mt-1 text-sm text-muted-foreground">Manage your profile and account.</p></section>
     <section className="border border-border bg-card p-5"><div className="mb-5 flex items-center gap-3"><Avatar className="size-12"><AvatarFallback className="bg-primary/15 text-primary">{initials(profileName || email)}</AvatarFallback></Avatar><div><h2 className="text-sm font-medium">Personal profile</h2><p className="text-xs text-muted-foreground">Updated {profile ? format(new Date(profile.updated_at), "MMM d, yyyy") : "when you save changes"}</p></div></div><form onSubmit={onSave} className="space-y-4"><div className="space-y-2"><label htmlFor="settings-name" className="text-sm font-medium">Display name</label><Input id="settings-name" value={profileName} onChange={(event) => setProfileName(event.target.value)} placeholder="Your name" maxLength={80} /></div><div className="space-y-2"><label htmlFor="settings-email" className="text-sm font-medium">Email</label><Input id="settings-email" value={email} disabled /><p className="text-xs text-muted-foreground">Your sign-in email is managed by your account.</p></div><Button type="submit" disabled={saving}>{saving ? "Saving…" : "Save profile"}</Button></form></section>
     <section className="flex items-start gap-3 border border-border bg-card p-5"><ShieldCheck className="mt-0.5 size-5 text-success" /><div><h2 className="text-sm font-medium">Private by design</h2><p className="mt-1 text-xs leading-5 text-muted-foreground">Your tasks and profile are only available to your signed-in account.</p></div></section>
@@ -563,7 +570,7 @@ function KanbanView({ tasks, openTask, onMove, openNewTask, draggingTask, setDra
   return <div className="grid gap-4 lg:grid-cols-4">{COLUMNS.map((column) => { const cards = tasks.filter((task) => task.status === column.id); return <section key={column.id} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const task = tasks.find((item) => item.id === draggingTask); if (task) onMove(task, column.id); setDraggingTask(null); }} className={`min-h-56 border border-border bg-card/50 ${draggingTask ? "border-dashed border-primary/50" : ""}`}><div className="flex items-center justify-between border-b border-border px-3 py-3"><div className="flex items-center gap-2"><span className={`size-2 rounded-full bg-current ${column.className}`} /><h2 className="text-xs font-medium">{column.title}</h2><span className="font-mono text-[10px] text-muted-foreground">{cards.length}</span></div><Button variant="ghost" size="icon" className="size-7" title={`Add task to ${column.title}`} aria-label={`Add task to ${column.title}`} onClick={openNewTask}><Plus className="size-4" /></Button></div><div className="space-y-2 p-2">{cards.map((task) => <button key={task.id} type="button" draggable onDragStart={() => setDraggingTask(task.id)} onDragEnd={() => setDraggingTask(null)} onClick={() => openTask(task)} className="block w-full cursor-grab border border-border bg-card p-3 text-left active:cursor-grabbing"><p className="line-clamp-2 text-xs font-medium">{task.title}</p><div className="mt-3 flex flex-wrap gap-1">{task.project && <Badge variant="secondary" className="max-w-24 truncate px-1.5 py-0 text-[9px]">{task.project}</Badge>}<PriorityMark priority={task.priority} /></div>{task.subtasks.length > 0 && <p className="mt-3 text-[10px] text-muted-foreground">{task.subtasks.filter((item) => item.completed).length}/{task.subtasks.length} subtasks</p>}{task.due_at && <p className="mt-3 flex items-center gap-1 text-[10px] text-muted-foreground"><Clock3 className="size-3" />{format(new Date(task.due_at), "MMM d")}</p>}</button>)}{cards.length === 0 && <p className="px-2 py-8 text-center text-[11px] text-muted-foreground">Drop tasks here</p>}</div></section>; })}</div>;
 }
 
-function StatCard({ label, value, icon, detail, tone = "default", onClick }: { label: string; value: string | number; icon: React.ReactNode; detail: string; tone?: "default" | "success" | "danger"; onClick?: () => void }) {
+function StatCard({ label, value, icon, detail, tone = "default", onClick }: { label: string; value: string | number; icon: ReactNode; detail: string; tone?: "default" | "success" | "danger"; onClick?: () => void }) {
   return <button type="button" onClick={onClick} className={`border border-border bg-card p-4 text-left transition-colors ${onClick ? "cursor-pointer hover:border-primary/40" : "cursor-default"}`}><div className="flex items-center justify-between"><span className="text-xs text-muted-foreground">{label}</span><span className={`${tone === "success" ? "text-success" : tone === "danger" ? "text-destructive" : "text-primary"}`}>{icon}</span></div><div className={`mt-3 text-2xl font-semibold ${tone === "success" ? "text-success" : tone === "danger" ? "text-destructive" : ""}`}>{value}</div><p className="mt-1 text-[11px] text-muted-foreground">{detail}</p></button>;
 }
 
@@ -576,11 +583,11 @@ function PriorityMark({ priority }: { priority: string }) {
   return <span title={`${priority} priority`} className={`size-2 shrink-0 rounded-full ${color}`} />;
 }
 
-function ViewModeButton({ active, label, icon, onClick }: { active: boolean; label: string; icon: React.ReactNode; onClick: () => void }) {
+function ViewModeButton({ active, label, icon, onClick }: { active: boolean; label: string; icon: ReactNode; onClick: () => void }) {
   return <Button variant="ghost" size="sm" className={`h-7 gap-1.5 px-2 text-[11px] ${active ? "bg-muted text-foreground" : "text-muted-foreground"}`} onClick={onClick}>{icon}<span className="hidden sm:inline">{label}</span></Button>;
 }
 
-function EmptyState({ title, description, icon, action }: { title: string; description: string; icon: React.ReactNode; action?: React.ReactNode }) {
+function EmptyState({ title, description, icon, action }: { title: string; description: string; icon: ReactNode; action?: ReactNode }) {
   return <div className="flex flex-col items-center justify-center px-5 py-12 text-center"><div className="mb-3 grid size-10 place-items-center border border-border bg-muted text-primary">{icon}</div><h3 className="text-sm font-medium">{title}</h3><p className="mt-1 max-w-xs text-xs leading-5 text-muted-foreground">{description}</p>{action && <div className="mt-4">{action}</div>}</div>;
 }
 
