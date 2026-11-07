@@ -49,6 +49,12 @@ describe("TASKFORGE task rules", () => {
     expect(getVisibleTasks(tasks, { view: "trash" }).map(({ id }) => id)).toEqual(["trash"]);
   });
 
+  it("filters the Important view to starred tasks only", () => {
+    const tasks = [task({ id: "starred", starred: true }), task({ id: "ordinary", starred: false })];
+
+    expect(getVisibleTasks(tasks, { view: "important" }).map(({ id }) => id)).toEqual(["starred"]);
+  });
+
   it("calculates completion percentage from the actual task count", () => {
     expect(getCompletionPercent({ total: 8, completed: 5 })).toBe(63);
     expect(getCompletionPercent({ total: 0, completed: 0 })).toBe(0);
