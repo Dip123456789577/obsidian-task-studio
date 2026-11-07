@@ -40,5 +40,5 @@ function IndexPage() {
 
   if (!user) return <AuthScreen onAuthenticated={() => undefined} />;
 
-  return <Workspace userId={user.id} email={user.email} onSignOut={signOut} />;
+  return <Workspace userId={user.id} email={user.email ?? ""} onSignOut={signOut} />;
 }
