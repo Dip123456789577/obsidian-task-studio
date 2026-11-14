@@ -29,6 +29,7 @@ import {
   Globe,
   KeyRound,
   LogOut,
+  Mail,
   Moon,
   Palette,
   ShieldCheck,
@@ -90,6 +91,41 @@ export function SettingsView({
   const [savingName, setSavingName] = useState(false);
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [testingEmail, setTestingEmail] = useState(false);
+
+  const handleSendTestEmail = async () => {
+    setTestingEmail(true);
+    try {
+      const res = await fetch("/api/email/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: email,
+          name: displayName || email.split("@")[0],
+          subject: "TASKFORGE — Brevo Email Integration Test",
+          htmlContent: `
+            <h3>TASKFORGE Brevo Email Integration</h3>
+            <p>Your Brevo API key is active and successfully delivering messages!</p>
+            <p>Sent at: ${new Date().toLocaleString()}</p>
+          `,
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+      if (res.ok && data["success"]) {
+        toast.success(`Test email sent via Brevo to ${email}!`);
+      } else if (data["ipRestricted"]) {
+        toast.warning(
+          "Brevo Connected! Tip: Add your IP to Brevo Authorized IPs (app.brevo.com/security/authorised_ips) for external delivery.",
+        );
+      } else {
+        toast.error((data["error"] as string) || "Failed to deliver test email");
+      }
+    } catch {
+      toast.error("Network error testing email integration");
+    } finally {
+      setTestingEmail(false);
+    }
+  };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -528,6 +564,42 @@ export function SettingsView({
               >
                 {preferences.browserNotifications ? "Authorized" : "Authorize"}
               </Button>
+            </div>
+
+            {/* Brevo Email Messaging Engine */}
+            <div className="pt-2 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs font-medium text-foreground">
+                      Brevo Email Messaging Engine
+                    </p>
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] bg-primary/10 text-primary border-primary/30"
+                    >
+                      Active
+                    </Badge>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    API Key: xkeysib-43243... &bull; Sender: noreply@taskforge.dev
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={testingEmail}
+                  className="h-7 text-xs gap-1.5 border-primary/30 hover:bg-primary/10 text-primary"
+                  onClick={handleSendTestEmail}
+                >
+                  <Mail className="size-3.5" />
+                  {testingEmail ? "Sending…" : "Send Test Email"}
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Powers welcome onboarding emails, one-time verification codes (OTP), password
+                recovery, and deadline notifications.
+              </p>
             </div>
           </div>
         </section>

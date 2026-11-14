@@ -30,7 +30,7 @@ export const Route = createFileRoute("/")({
 });
 
 function IndexPage() {
-  const { user, loading } = useTaskforgeAuth();
+  const { user, loading, setUser } = useTaskforgeAuth();
   const queryClient = useQueryClient();
   const [signingOut, setSigningOut] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
@@ -53,8 +53,10 @@ function IndexPage() {
     setSigningOut(true);
     if (typeof window !== "undefined") {
       localStorage.removeItem("taskforge_guest_active");
+      localStorage.removeItem("taskforge_auth_session");
     }
     setIsGuest(false);
+    setUser(null);
     await queryClient.cancelQueries();
     queryClient.clear();
     try {
@@ -82,8 +84,11 @@ function IndexPage() {
   if (!activeUser) {
     return (
       <AuthScreen
-        onAuthenticated={() => {
+        onAuthenticated={(authedUser) => {
           setIsGuest(false);
+          if (authedUser) {
+            setUser(authedUser);
+          }
         }}
         onEnterGuest={handleEnterGuest}
       />
